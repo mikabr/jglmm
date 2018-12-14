@@ -2,7 +2,8 @@ utils::globalVariables(c("."))
 
 #' @importFrom dplyr "%>%"
 #' @importFrom glue glue
-#' @import JuliaCall
+#' @importFrom generics augment tidy
+#' @importFrom JuliaCall julia_assign julia_command julia_eval
 #' @importFrom rlang .data
 NULL
 
@@ -23,10 +24,17 @@ NULL
 #'   variables in data to coding schemes (defauls to dummy coding all
 #'   categorical variables).
 #'
-#' @return
+#' @return An object of class `jglmm`.
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+#' gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+#'              weights = cbpp$size)
+#' gm2 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+#'              weights = cbpp$size, contrasts = list(period = "effects"))
+#' }
 jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
                   contrasts = NULL) {
 
@@ -64,17 +72,58 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   # set up and fit model
   julia_command(glue("model = MixedModels.GeneralizedLinearMixedModel({paste(model_args, collapse = ', ')});"))
   julia_command("fit!(model);")
+  model <- julia_eval("model")
 
-  # extract coefficients
+  results <- list(formula = formula, data = data, model = model)
+  class(results) <- "jglmm"
+  return(results)
+
+}
+
+#' Tidying methods for jglmm models
+#'
+#' @param x An object of class `jglmm`, as returned by `jglmm`.
+#'
+#' @name jglmm_tidiers
+#'
+#' @examples
+#' \dontrun{
+#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+#' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+#'             weights = cbpp$size)
+#' tidy(gm)
+#' augment(gm)
+#' }
+NULL
+
+#' @rdname jglmm_tidiers
+#'
+#' @return `tidy` returns a tibble of fixed effect estimates
+#'
+#' @export
+tidy.jglmm <- function(x) {
+  julia_assign("model", x$model)
   julia_command("coef = coeftable(model);")
   julia_command("coef_df = DataFrame(coef.cols);")
   julia_command("coef_df[4] = [ coef_df[4][i].v for i in 1:length(coef_df[4]) ];")
   julia_command("names!(coef_df, [ Symbol(nm) for nm in coef.colnms ]);")
   julia_command("coef_df[:term] = coef.rownms;")
   julia_eval("coef_df") %>%
-    dplyr::as_data_frame() %>%
+    dplyr::as_tibble() %>%
     dplyr::select(.data$term, estimate = .data$Estimate,
-                  std.error = .data$Std.Error, statistic = .data$`z value`,
+                  std.error = .data$Std.Error, z.value = .data$`z value`,
                   p.value = .data$`P(>|z|)`)
+}
 
+#' @rdname jglmm_tidiers
+#'
+#' @return `augment` returns a tibble of the original data used to fit the model
+#'   with an additional `.fitted` column containing the fitted response valuese.
+#'
+#' @export
+augment.jglmm <- function(x) {
+  julia_assign("model", x$model)
+  fits <- julia_eval("fitted(model)")
+  x$data$.fitted <- fits
+  x$data %>% dplyr::as_tibble()
 }

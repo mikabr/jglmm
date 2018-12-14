@@ -27,6 +27,18 @@ separating expressions for design matrices from grouping factors.}
 variables in data to coding schemes (defauls to dummy coding all
 categorical variables).}
 }
+\value{
+An object of class `jglmm`.
+}
 \description{
 Fitting Generalized Linear Mixed-Effects Models in Julia
+}
+\examples{
+\dontrun{
+cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+             weights = cbpp$size)
+gm2 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+             weights = cbpp$size, contrasts = list(period = "effects"))
+}
 }
