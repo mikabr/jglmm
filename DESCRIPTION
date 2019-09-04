@@ -1,6 +1,6 @@
 Package: jglmm
 Type: Package
-Version: 0.1.0
+Version: 0.1.1
 Title: Generalized Mixed-Effects Models in Julia
 Description: TODO <http://dmbates.github.io/MixedModels.jl/latest/>.
 Authors@R: c(
@@ -23,7 +23,7 @@ Imports:
     stringr (>= 1.3.1)
 RoxygenNote: 6.1.1
 SystemRequirements:
-  Julia >= 0.6.0,
+  Julia >= 1.2.0,
   RCall.jl,
   DataFrames.jl,
   MixedModels.jl,
