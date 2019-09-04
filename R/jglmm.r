@@ -105,15 +105,15 @@ tidy.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_command("coef = coeftable(model);")
   julia_command("coef_df = DataFrame(coef.cols);")
-  julia_command("coef_df[4] = [ coef_df[4][i].v for i in 1:length(coef_df[4]) ];")
   julia_command("names!(coef_df, [ Symbol(nm) for nm in coef.colnms ]);")
-  julia_command("coef_df[:term] = coef.rownms;")
+  julia_command("coef_df[!, :term] = coef.rownms;")
   julia_eval("coef_df") %>%
     dplyr::as_tibble() %>%
     dplyr::select(.data$term, estimate = .data$Estimate,
                   std.error = .data$Std.Error, z.value = .data$`z value`,
                   p.value = .data$`P(>|z|)`)
 }
+
 
 #' @rdname jglmm_tidiers
 #'

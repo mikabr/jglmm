@@ -8,7 +8,7 @@ devtools::install_github("mikabr/jglmm")
 Additionally, you need to have Julia installed, along with the Julia libraries `DataFrames.jl`, `StatsModels.jl`, and `MixedModels.jl`.
 The location of your Julia installation needs to be known to the R package, either as the global option `JULIA_HOME` or the environmental variable `JULIA_HOME`. For example:
 ```
-options(JULIA_HOME = "/Applications/Julia-0.6.app/Contents/Resources/julia/bin/")
+options(JULIA_HOME = "/Applications/Julia-1.2.app/Contents/Resources/julia/bin/")
 ```
 
 ## Usage
