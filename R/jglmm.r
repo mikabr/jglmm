@@ -49,8 +49,7 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   julia_assign("formula", formula)
   julia_assign("data", data)
 
-  # construct model arguments
-  model_args <- c("formula", "data", glue("{stringr::str_to_title(family)}()"))
+  model_args <- glue("{stringr::str_to_title(family)}()")
 
   if (!is.null(link)) {
     model_args <- c(model_args, glue("{stringr::str_to_title(link)}Link()"))
@@ -58,7 +57,7 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
 
   if (!is.null(weights)) {
     julia_assign("weights", weights)
-    model_args <- c(model_args, "wt = weights")
+    model_args <- c(model_args, "wts = weights")
   }
 
   if (!is.null(contrasts)) {
@@ -70,8 +69,9 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   }
 
   # set up and fit model
-  julia_command(glue("model = MixedModels.GeneralizedLinearMixedModel({paste(model_args, collapse = ', ')});"))
-  julia_command("fit!(model);")
+  julia_command(glue("model = fit(MixedModels.MixedModel, formula, data,
+               {paste(model_args, collapse = ', ')});"))
+
   model <- julia_eval("model")
 
   results <- list(formula = formula, data = data, model = model)
