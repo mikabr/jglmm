@@ -8,6 +8,17 @@ utils::globalVariables(c("."))
 NULL
 
 
+#' Set up Julia and required libraries
+#'
+#' @export
+jglmm_setup <- function() {
+  JuliaCall::julia_setup()
+  JuliaCall::julia_library("MixedModels")
+  JuliaCall::julia_library("DataFrames")
+  JuliaCall::julia_library("StatsModels")
+}
+
+
 #' Fitting Generalized Linear Mixed-Effects Models in Julia
 #'
 #' @param formula A two-sided linear formula object describing both the
@@ -29,6 +40,10 @@ NULL
 #'
 #' @examples
 #' \dontrun{
+#' # linear model
+#' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
+#'
+#' # logistic model
 #' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
 #' gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
 #'              weights = cbpp$size)
@@ -50,15 +65,17 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   julia_assign("data", data)
 
   # construct model arguments
-  model_args <- c("formula", "data", glue("{stringr::str_to_title(family)}()"))
+  model_args <- c("formula", "data")
 
-  if (!is.null(link)) {
-    model_args <- c(model_args, glue("{stringr::str_to_title(link)}Link()"))
-  }
-
-  if (!is.null(weights)) {
-    julia_assign("weights", weights)
-    model_args <- c(model_args, "wt = weights")
+  # choose between LinearMixedModel and GeneralizedLinearMixedModel
+  if (family == "normal" & (is.null(link) || link == "identity")) {
+    model_fun <- "MixedModels.LinearMixedModel"
+  } else {
+    model_fun <- "MixedModels.GeneralizedLinearMixedModel"
+    model_args <- c(model_args, glue("{stringr::str_to_title(family)}()"))
+    if (!is.null(link)) {
+      model_args <- c(model_args, glue("{stringr::str_to_title(link)}Link()"))
+    }
   }
 
   if (!is.null(contrasts)) {
@@ -69,10 +86,13 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
     model_args <- c(model_args, glue("contrasts = Dict({contrasts_args})"))
   }
 
+  if (!is.null(weights)) {
+    julia_assign("weights", weights)
+    model_args <- c(model_args, "wts = weights")
+  }
+
   # set up and fit model
-  julia_command(glue("model = MixedModels.GeneralizedLinearMixedModel({paste(model_args, collapse = ', ')});"))
-  julia_command("fit!(model);")
-  model <- julia_eval("model")
+  model <- julia_eval(glue("fit({model_fun}, {paste(model_args, collapse = ', ')})"))
 
   results <- list(formula = formula, data = data, model = model)
   class(results) <- "jglmm"
@@ -105,9 +125,8 @@ tidy.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_command("coef = coeftable(model);")
   julia_command("coef_df = DataFrame(coef.cols);")
-  julia_command("coef_df[4] = [ coef_df[4][i].v for i in 1:length(coef_df[4]) ];")
   julia_command("names!(coef_df, [ Symbol(nm) for nm in coef.colnms ]);")
-  julia_command("coef_df[:term] = coef.rownms;")
+  julia_command("coef_df[!, :term] = coef.rownms;")
   julia_eval("coef_df") %>%
     dplyr::as_tibble() %>%
     dplyr::select(.data$term, estimate = .data$Estimate,
