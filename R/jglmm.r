@@ -124,20 +124,22 @@ NULL
 tidy.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_command("coef = coeftable(model);")
-  julia_command("coef_df = DataFrame(coef.cols);")
-  julia_command("names!(coef_df, [ Symbol(nm) for nm in coef.colnms ]);")
-  julia_command("coef_df[!, :term] = coef.rownms;")
-  julia_eval("coef_df") %>%
-    dplyr::as_tibble() %>%
-    dplyr::select(.data$term, estimate = .data$Estimate,
-                  std.error = .data$Std.Error, z.value = .data$`z value`,
-                  p.value = .data$`P(>|z|)`)
+  julia_command("coef_df = DataFrame(term = coef.rownms,
+                                     estimate = coef.cols[1],
+                                     std_error = coef.cols[2],
+                                     statistic = coef.cols[3],
+                                     df = dof(model),
+                                     p_value = coef.cols[4]);")
+  julia_eval("coef_df") %>% dplyr::as_tibble() %>%
+    dplyr::rename_with(~stringr::str_replace_all(.x, "_", "\\.")) %>%
+    dplyr::mutate(effect = "fixed") %>%
+    dplyr::select(.data$effect, dplyr::everything())
 }
 
 #' @rdname jglmm_tidiers
 #'
 #' @return `augment` returns a tibble of the original data used to fit the model
-#'   with an additional `.fitted` column containing the fitted response valuese.
+#'   with an additional `.fitted` column containing the fitted response values.
 #'
 #' @export
 augment.jglmm <- function(x) {

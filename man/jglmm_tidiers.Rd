@@ -17,7 +17,7 @@
 `tidy` returns a tibble of fixed effect estimates
 
 `augment` returns a tibble of the original data used to fit the model
-  with an additional `.fitted` column containing the fitted response valuese.
+  with an additional `.fitted` column containing the fitted response values.
 }
 \description{
 Tidying methods for jglmm models

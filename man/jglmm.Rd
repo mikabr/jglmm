@@ -4,8 +4,14 @@
 \alias{jglmm}
 \title{Fitting Generalized Linear Mixed-Effects Models in Julia}
 \usage{
-jglmm(formula, data, family = "normal", link = NULL, weights = NULL,
-  contrasts = NULL)
+jglmm(
+  formula,
+  data,
+  family = "normal",
+  link = NULL,
+  weights = NULL,
+  contrasts = NULL
+)
 }
 \arguments{
 \item{formula}{A two-sided linear formula object describing both the
