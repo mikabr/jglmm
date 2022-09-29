@@ -24,10 +24,11 @@ Tidying methods for jglmm models
 }
 \examples{
 \dontrun{
+jglmm_setup()
 cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
 gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
             weights = cbpp$size)
-tidy(gm)
-augment(gm)
+broom::tidy(gm)
+broom::augment(gm)
 }
 }

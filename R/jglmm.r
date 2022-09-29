@@ -40,6 +40,7 @@ jglmm_setup <- function() {
 #'
 #' @examples
 #' \dontrun{
+#' jglmm_setup()
 #' # linear model
 #' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 #'
@@ -108,11 +109,12 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
 #'
 #' @examples
 #' \dontrun{
+#' jglmm_setup()
 #' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
 #' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
 #'             weights = cbpp$size)
-#' tidy(gm)
-#' augment(gm)
+#' broom::tidy(gm)
+#' broom::augment(gm)
 #' }
 NULL
 
@@ -161,10 +163,11 @@ augment.jglmm <- function(x) {
 #'
 #' @examples
 #' \dontrun{
+#' jglmm_setup()
 #' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
 #' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
 #'             weights = cbpp$size)
-#' ranef(gm)
+#' ranef_jglmm(gm)
 #' }
 ranef_jglmm <- function(x) {
   julia_assign("model", x$model)

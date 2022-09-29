@@ -41,6 +41,7 @@ Fitting Generalized Linear Mixed-Effects Models in Julia
 }
 \examples{
 \dontrun{
+jglmm_setup()
 # linear model
 lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 
