@@ -32,7 +32,7 @@ jglmm_setup <- function() {
 #' @param link (optional) The model link function (defaults to "identity").
 #' @param weights (optional) A vector of prior case weights.
 #' @param contrasts (optional) A named list mapping column names of categorical
-#'   variables in data to coding schemes (defauls to dummy coding all
+#'   variables in data to coding schemes (defaults to dummy coding all
 #'   categorical variables).
 #'
 #' @return An object of class `jglmm`.
@@ -99,81 +99,4 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   class(results) <- "jglmm"
   return(results)
 
-}
-
-#' Tidying methods for jglmm models
-#'
-#' @param x An object of class `jglmm`, as returned by `jglmm`.
-#'
-#' @name jglmm_tidiers
-#'
-#' @examples
-#' \dontrun{
-#' jglmm_setup()
-#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
-#' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
-#'             weights = cbpp$size)
-#' broom::tidy(gm)
-#' broom::augment(gm)
-#' }
-NULL
-
-#' @rdname jglmm_tidiers
-#'
-#' @return `tidy` returns a tibble of fixed effect estimates
-#'
-#' @export
-tidy.jglmm <- function(x) {
-  julia_assign("model", x$model)
-  julia_command("coef = coeftable(model);")
-  julia_command("coef_df = DataFrame(term = coef.rownms,
-                                     estimate = coef.cols[1],
-                                     std_error = coef.cols[2],
-                                     statistic = coef.cols[3],
-                                     df = dof(model),
-                                     p_value = coef.cols[4]);")
-  julia_eval("coef_df") %>% dplyr::as_tibble() %>%
-    dplyr::rename_with(~stringr::str_replace_all(.x, "_", "\\.")) %>%
-    dplyr::mutate(effect = "fixed") %>%
-    dplyr::select(.data$effect, dplyr::everything())
-}
-
-#' @rdname jglmm_tidiers
-#'
-#' @return `augment` returns a tibble of the original data used to fit the model
-#'   with an additional `.fitted` column containing the fitted response values.
-#'
-#' @export
-augment.jglmm <- function(x) {
-  julia_assign("model", x$model)
-  fits <- julia_eval("fitted(model)")
-  x$data$.fitted <- fits
-  x$data %>% dplyr::as_tibble()
-}
-
-#' Extract the modes of the random effects
-#'
-#' Extract the conditional modes of the random effects from a fitted `jglmm`
-#' object.
-#'
-#' @param x An object of class `jglmm`, as returned by `jglmm`.
-#'
-#' @return A list of tibbles, one for each random effect group.
-#' @export
-#'
-#' @examples
-#' \dontrun{
-#' jglmm_setup()
-#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
-#' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
-#'             weights = cbpp$size)
-#' ranef_jglmm(gm)
-#' }
-ranef_jglmm <- function(x) {
-  julia_assign("model", x$model)
-  julia_command("model_ranef = map(DataFrame, raneftables(model));")
-  model_ranef <- julia_eval("model_ranef")
-  ranef_terms <- julia_eval("keys(model_ranef)")
-  purrr::map(1:length(model_ranef), ~dplyr::as_tibble(model_ranef[.x])) %>%
-    purrr::set_names(ranef_terms)
 }
