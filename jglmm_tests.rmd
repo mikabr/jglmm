@@ -1,0 +1,76 @@
+---
+title: "jglmm tests"
+author: "anjie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+The goal of this document is to reproduce the tests documented in https://github.com/JuliaStats/MixedModels.jl/blob/main/test/modelcache.jl
+
+```{r}
+library(jglmm)
+library(lme4)
+library(tidyverse)
+library(glue)
+
+options(JULIA_HOME = "/Applications/Julia-1.8.app/Contents/Resources/julia/bin/") 
+jglmm_setup()
+```
+
+# Downloading every datasets from Julia MixedModels 
+
+```{r}
+all_datasets <-JuliaCall::julia_eval("MixedModels.datasets()")
+
+usethis::use_data_raw(name = "julia_datasets")
+
+```
+
+
+
+# Feasibility check 
+
+```
+   
+  
+    :
+```
+
+# Accuracy check 
+
+```
+@isdefined(gfms) || const global gfms = Dict(
+    :cbpp => [@formula((incid/hsz) ~ 1 + period + (1|herd))], # works
+```
+```{r}
+cbpp_m <- jglmm::jglmm(incidence/size ~ 1 + period + (1|herd),data = cbpp)
+```
+
+
+```
+ :contra => [@formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist)),
+                @formula(use ~ 1+urban+(1+urban|dist))], # see #563
+```
+
+```{r}
+
+```
+
+
+```
+:grouseticks => [@formula(ticks ~ 1+year+ch+ (1|index) + (1|brood) + (1|location))]
+```
+```{r}
+grouseticks <- jglmm::jglmm(TICKS ~ 1+YEAR+cHEIGHT+ (1|INDEX) + (1|BROOD) + (1|LOCATION),data = grouseticks)
+```
+
+```
+verbagg => [@formula(r2 ~ 1+anger+gender+btype+situ+(1|subj)+(1|item))],
+)
+```
+```{r}
+verbagg_m <- jglmm::jglmm(r2 ~ 1+anger+gender+btype+situ+(1|subj)+(1|item),data = VerbAgg)
+
+```
+
+
