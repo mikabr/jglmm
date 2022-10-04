@@ -1,3 +1,18 @@
+#' Title
+#'
+#' @param x
+#'
+#' @return
+#' @export
+#'
+#' @examples
+fixef.jglmm <- function(x) {
+  julia_assign("model", x$model)
+  vals <- julia_eval("fixef(model);")
+  names <- julia_eval("fixefnames(model);")
+  rlang::set_names(vals, names)
+}
+
 #' Extract the modes of the random effects
 #'
 #' Extract the conditional modes of the random effects from a fitted `jglmm`

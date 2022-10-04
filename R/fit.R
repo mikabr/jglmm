@@ -1,21 +1,11 @@
-utils::globalVariables(c("."))
-
-#' @importFrom dplyr "%>%"
-#' @importFrom glue glue
-#' @importFrom generics augment tidy
-#' @importFrom JuliaCall julia_assign julia_command julia_eval
-#' @importFrom rlang .data
-NULL
-
-
 #' Set up Julia and required libraries
 #'
 #' @export
 jglmm_setup <- function() {
-  JuliaCall::julia_setup()
-  JuliaCall::julia_library("MixedModels")
-  JuliaCall::julia_library("DataFrames")
-  JuliaCall::julia_library("StatsModels")
+  julia_setup()
+  julia_library("MixedModels")
+  julia_library("DataFrames")
+  julia_library("StatsModels")
 }
 
 
@@ -80,9 +70,9 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   }
 
   if (!is.null(contrasts)) {
-    contrasts_args <- contrasts %>%
+    contrasts_args <- contrasts |>
       purrr::map2_chr(names(.),
-                      ~glue(":{.y} => {stringr::str_to_title(.x)}Coding()")) %>%
+                      ~glue(":{.y} => {stringr::str_to_title(.x)}Coding()")) |>
       paste(collapse = ", ")
     model_args <- c(model_args, glue("contrasts = Dict({contrasts_args})"))
   }
