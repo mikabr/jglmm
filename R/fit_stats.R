@@ -71,3 +71,25 @@ nobs.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_eval("nobs(model);")
 }
+
+#' Model Deviance
+#'
+#' @importFrom stats deviance
+#' @param x An object of class `jglmm`, as returned by `jglmm`.
+#'
+#' @return A numeric giving the deviance extracted from the fitted model.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' jglmm_setup()
+#' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
+#' deviance(lm1)
+#' }
+deviance.jglmm <- function(x) {
+  julia_assign("model", x$model)
+  # NOTE: for GLMs, there is some adjustment for the saturated model, although
+  # this differs from the adjustment made by lme4::deviance.merMod, resulting
+  # in different values. To be investigated in the future.
+  julia_eval("deviance(model);")
+}
