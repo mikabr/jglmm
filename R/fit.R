@@ -70,9 +70,9 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   }
 
   if (!is.null(contrasts)) {
-    contrasts_args <- contrasts |>
-      purrr::map2_chr(names(.),
-                      ~glue(":{.y} => {stringr::str_to_title(.x)}Coding()")) |>
+    contrasts_args <- purrr::map2_chr(
+      contrasts, names(contrasts),
+      \(c, nc) glue(":{nc} => {stringr::str_to_title(c)}Coding()")) |>
       paste(collapse = ", ")
     model_args <- c(model_args, glue("contrasts = Dict({contrasts_args})"))
   }
