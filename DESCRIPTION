@@ -30,3 +30,6 @@ SystemRequirements:
   DataFrames.jl,
   MixedModels.jl,
   StatsModels.jl
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
