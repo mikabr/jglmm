@@ -1,0 +1,197 @@
+---
+title: "jglmm tests"
+author: "anjie"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+The goal of this document is to reproduce the tests documented in https://github.com/JuliaStats/MixedModels.jl/blob/main/test/modelcache.jl
+
+```{r}
+library(jglmm)
+library(lme4)
+library(tidyverse)
+library(glue)
+
+options(JULIA_HOME = "/Applications/Julia-1.8.app/Contents/Resources/julia/bin/") 
+jglmm_setup()
+```
+
+# Downloading every datasets from Julia MixedModels 
+
+```{r}
+all_datasets <-JuliaCall::julia_eval("MixedModels.datasets()")
+
+usethis::use_data_raw(name = "julia_datasets")
+
+```
+
+
+
+# Feasibility check 
+
+
+# Accuracy check 
+
+```
+@isdefined(gfms) || const global gfms = Dict(
+    :cbpp => [@formula((incid/hsz) ~ 1 + period + (1|herd))], # works
+```
+```{r}
+cbpp_m <- jglmm::jglmm(incid/hsz ~ 1 + period + (1|herd),data = jglmm::cbpp)
+```
+
+
+```
+ :contra => [@formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist)),
+                @formula(use ~ 1+urban+(1+urban|dist))], # see #563
+```
+
+```{r}
+contra_m1 <- jglmm::jglmm(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist), data = jglmm::contra)
+
+contra_m2 <- jglmm::jglmm(use ~ 1+urban+(1+urban|dist), data = jglmm::contra)
+
+```
+
+
+```
+:grouseticks => [@formula(ticks ~ 1+year+ch+ (1|index) + (1|brood) + (1|location))]
+```
+
+typo in the formula specification 
+
+```{r}
+grouseticks_m <- jglmm::jglmm(ticks ~ 1+year+height+ (1|index) + (1|brood) + (1|location),data = grouseticks)
+```
+
+```
+verbagg => [@formula(r2 ~ 1+anger+gender+btype+situ+(1|subj)+(1|item))],
+)
+```
+```{r}
+verbagg_m <- jglmm::jglmm(r2 ~ 1+anger+gender+btype+situ+(1|subj)+(1|item),data = jglmm::verbagg)
+
+```
+
+```
+oxide => [@formula(Thickness ~ 1 + (1|Lot/Wafer)),
+               @formula(Thickness ~ 1 + Source + (1+Source|Lot) + (1+Source|Lot&Wafer))]
+```
+
+```{r}
+oxide_m1 <- jglmm::jglmm(Thickness ~ 1 + (1|Lot/Wafer), jglmm::oxide)
+oxide_m2 <- jglmm::jglmm(Thickness ~ 1 + Source + (1+Source|Lot) + (1+Source|Lot&Wafer), jglmm::oxide)
+
+```
+
+```
+dyestuff => [@formula(yield ~ 1 + (1|batch))]
+```
+
+```{r}
+dyestuff_m <- jglmm::jglmm(yield ~ 1 + (1|batch), 
+                           jglmm::dyestuff)
+```
+
+```
+dyestuff2 => [@formula(yield ~ 1 + (1|batch))]
+```
+
+```{r}
+
+dyestuff2_m <- jglmm::jglmm(yield ~ 1 + (1|batch), 
+                           jglmm::dyestuff2)
+```
+
+```
+d3 => [@formula(y ~ 1 + u + (1+u|g) + (1+u|h) + (1+u|i))]
+```
+
+```{r}
+d3_m <- jglmm::jglmm(y ~ 1 + u + (1+u|g) + (1+u|h) + (1+u|i), 
+                           jglmm::d3)
+```
+
+
+```
+:insteval => [
+        @formula(y ~ 1 + service + (1|s) + (1|d) + (1|dept)),
+        @formula(y ~ 1 + service*dept + (1|s) + (1|d)),
+    ]
+```
+
+```{r}
+insteval_m1 <- jglmm::jglmm(y ~ 1 + service + (1|s) + (1|d) + (1|dept), jglmm::insteval)
+
+insteval_m2 <- jglmm::jglmm(y ~ 1 + service*dept + (1|s) + (1|d), jglmm::insteval)
+
+```
+
+```
+kb07 => [
+        @formula(rt_trunc ~ 1+spkr+prec+load+(1|subj)+(1|item)),
+        @formula(rt_trunc ~ 1+spkr*prec*load+(1|subj)+(1+prec|item)),
+        @formula(rt_trunc ~ 1+spkr*prec*load+(1+spkr+prec+load|subj)+(1+spkr+prec+load|item)),
+    ]
+```
+
+```{r}
+kb07_m1 <- jglmm::jglmm(rt_trunc ~ 1+spkr+prec+load+(1|subj)+(1|item), jglmm::kb07)
+
+kb07_m2 <- jglmm::jglmm(rt_trunc ~ 1+spkr*prec*load+(1|subj)+(1+prec|item), jglmm::kb07)
+
+kb07_m3 <- jglmm::jglmm(rt_trunc ~ 1+spkr*prec*load+(1+spkr+prec+load|subj)+(1+spkr+prec+load|item), jglmm::kb07)
+
+```
+
+   
+```
+pastes => [
+        @formula(strength ~ 1 + (1|batch&cask)),
+        @formula(strength ~ 1 + (1|batch/cask)),
+    ]
+```
+
+```{r}
+pastes_m1 <- jglmm::jglmm(strength ~ 1 + (1|batch&cask), 
+                          jglmm::pastes)
+pastes_m2 <- jglmm::jglmm(strength ~ 1 + (1|batch/cask), 
+                          jglmm::pastes)
+```
+
+```
+penicillin => [@formula(diameter ~ 1 + (1|plate) + (1|sample))]
+```    
+```{r}
+penicillin_m1 <- jglmm::jglmm(diameter ~ 1 + (1|plate) + (1|sample), jglmm::penicillin)
+```
+
+```
+sleepstudy => [
+        @formula(reaction ~ 1 + days + (1|subj)),
+        @formula(reaction ~ 1 + days + zerocorr(1+days|subj)),
+        @formula(reaction ~ 1 + days + (1|subj) + (0+days|subj)),
+        @formula(reaction ~ 1 + days + (1+days|subj)),
+    ],
+)
+```
+
+```{r}
+julia_command("import RCall.rcopy")
+julia_command("function rcopy(::Type{RCall.StatsModels.FormulaTerm}, l::Ptr{LangSxp})
+    expr = rcopy(Expr, l)
+    @eval RCall.StatsModels.@formula($expr)
+end")
+```
+
+
+```{r}
+sleepstudy_m1 <- jglmm::jglmm(reaction ~ 1 + days + (1|subj), data = jglmm::sleepstudy)
+
+sleepstudy_m2 <- jglmm::jglmm(reaction ~ 1 + days + zerocorr(1+days|subj), data = jglmm::sleepstudy)
+
+sleepstudy_m3 <- jglmm::jglmm(reaction ~ 1 + days + (1|subj) + (0+days|subj), data = jglmm::sleepstudy)
+
+sleepstudy_m4 <-jglmm::jglmm(reaction ~ 1 + days + (1+days|subj), data = jglmm::sleepstudy)
+```
