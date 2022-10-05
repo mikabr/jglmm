@@ -24,6 +24,8 @@ jglmm_setup <- function() {
 #' @param contrasts (optional) A named list mapping column names of categorical
 #'   variables in data to coding schemes (defaults to dummy coding all
 #'   categorical variables).
+#' @param REML (optional) A logical indicating whether REML should be used
+#'   instead of maximum likelihood (defaults to \code{FALSE}).
 #'
 #' @return An object of class `jglmm`.
 #' @export
@@ -42,7 +44,7 @@ jglmm_setup <- function() {
 #'              weights = cbpp$size, contrasts = list(period = "effects"))
 #' }
 jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
-                  contrasts = NULL) {
+                  contrasts = NULL, REML = FALSE) {
 
   stopifnot(
     family %in% c("bernoulli", "binomial", "gamma", "normal", "poisson"),
@@ -61,8 +63,12 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   # choose between LinearMixedModel and GeneralizedLinearMixedModel
   if (family == "normal" & (is.null(link) || link == "identity")) {
     model_fun <- "MixedModels.LinearMixedModel"
+    model_args <- c(model_args, glue("REML={tolower(as.character(REML))}"))
   } else {
     model_fun <- "MixedModels.GeneralizedLinearMixedModel"
+    if (REML) {
+      warning("REML not well-defined for generalized linear mixed models; ignoring")
+    }
     model_args <- c(model_args, glue("{stringr::str_to_title(family)}()"))
     if (!is.null(link)) {
       model_args <- c(model_args, glue("{stringr::str_to_title(link)}Link()"))
