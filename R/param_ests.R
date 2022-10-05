@@ -1,6 +1,6 @@
 #' @keywords internal
 coef_trans <- function(coef_names) {
-  coef_names |> stringr::str_remove(": ")
+  coef_names |> stringr::str_replace_all(": ", "=")
 }
 
 #' Extract fixed-effects estimates
