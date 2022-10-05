@@ -76,6 +76,7 @@ sigma.jglmm <- function(x) {
 #' Extract the conditional modes of the random effects from a fitted `jglmm`
 #' object.
 #'
+#' @importFrom lme4 ranef
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #'
 #' @return A list of tibbles, one for each random effect group.
@@ -87,13 +88,17 @@ sigma.jglmm <- function(x) {
 #' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
 #' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
 #'             weights = cbpp$size)
-#' ranef_jglmm(gm)
+#' ranef(gm)
 #' }
-ranef_jglmm <- function(x) {
+ranef.jglmm <- function(x) {
   julia_assign("model", x$model)
-  julia_command("model_ranef = map(DataFrame, raneftables(model));")
-  model_ranef <- julia_eval("model_ranef")
   ranef_terms <- julia_eval("keys(model_ranef)")
-  purrr::map(1:length(model_ranef), ~dplyr::as_tibble(model_ranef[.x])) %>%
+  model_ranef <- julia_eval("model_ranef = map(DataFrame, raneftables(model));")
+  cond_var <- julia_eval("condVar(model)")
+  purrr::map(1:length(model_ranef), \(i) {
+    df <- dplyr::as_tibble(model_ranef[[i]]) |> dplyr::rename_with(coef_trans)
+    attr(df, "postVar") <- cond_var[[i]]
+    return(df)
+  }) |>
     purrr::set_names(ranef_terms)
 }
