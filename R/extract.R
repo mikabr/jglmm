@@ -137,7 +137,27 @@ fitted.jglmm <- function(x) {
   julia_eval("fitted(model)")
 }
 
-influence <- function(x) {
+#' Diagonal elements of the hat matrix
+#'
+#' Returns the values on the diagonal of the hat matrix, which is the matrix
+#' that transforms the response vector (minus any offset) into the fitted values
+#' (minus any offset). Note that this method should only be used for linear
+#' mixed models. It is not clear if the hat matrix concept even makes sense for
+#' generalized linear mixed models.
+#'
+#' @importFrom stats hatvalues
+#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#'
+#' @return A numeric vector containing the diagonal elements of the hat matrix.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' jglmm_setup()
+#' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
+#' hatvalues(lm1)
+#' }
+hatvalues.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_eval("leverage(model)")
 }
