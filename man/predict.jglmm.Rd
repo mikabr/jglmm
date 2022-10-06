@@ -28,3 +28,15 @@ A numeric vector of predicted values
 \description{
 Predictions from a model at new data values
 }
+\examples{
+\dontrun{
+jglmm_setup()
+cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+             weights = cbpp$size)
+predict(gm1)
+predict(gm1, type = "response")
+newdata <- with(cbpp, expand.grid(period=unique(period), herd=unique(herd)))
+predict(gm1, newdata)
+}
+}

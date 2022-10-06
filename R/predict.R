@@ -15,6 +15,18 @@
 #'
 #' @return A numeric vector of predicted values
 #' @export
+#'
+#' @examples
+#' \dontrun{
+#' jglmm_setup()
+#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+#' gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+#'              weights = cbpp$size)
+#' predict(gm1)
+#' predict(gm1, type = "response")
+#' newdata <- with(cbpp, expand.grid(period=unique(period), herd=unique(herd)))
+#' predict(gm1, newdata)
+#' }
 predict.jglmm <- function(x, newdata = NULL, allow.new.levels = FALSE,
                           type = "link") {
   stopifnot(type %in% c("link", "response"))
