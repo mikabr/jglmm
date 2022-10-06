@@ -2,23 +2,23 @@
 % Please edit documentation in R/predict.R
 \name{predict.jglmm}
 \alias{predict.jglmm}
-\title{Predictions from a model at new data values}
+\title{Predictions from a model}
 \usage{
 \method{predict}{jglmm}(x, newdata = NULL, allow.new.levels = FALSE, type = "link")
 }
 \arguments{
 \item{x}{An object of class `jglmm`, as returned by `jglmm`.}
 
-\item{newdata}{A dataframe of new data.}
+\item{newdata}{(optional) A dataframe of new data.}
 
-\item{allow.new.levels}{A logical indicating whether new random effects
-levels in \code{newdata} are allowed. If \code{FALSE} (default), such new
-values in \code{newdata} will trigger an error; if \code{TRUE}, then the
-prediction will use population-level values for data with previously
-unobserved values.}
+\item{allow.new.levels}{(optional) A logical indicating whether new random
+effects levels in \code{newdata} are allowed. If \code{FALSE} (default),
+such new values in \code{newdata} will trigger an error; if \code{TRUE},
+then the prediction will use population-level values for data with
+previously unobserved values.}
 
-\item{type}{A character string - either \code{"link"} (default), where
-predictions are returned on the scale of the linear predictors, or
+\item{type}{(optional) A character string - either \code{"link"} (default),
+where predictions are returned on the scale of the linear predictors, or
 \code{"response"}, where predictions are returned on the scale of the
 response variable.}
 }
@@ -26,7 +26,7 @@ response variable.}
 A numeric vector of predicted values
 }
 \description{
-Predictions from a model at new data values
+Predictions from a model
 }
 \examples{
 \dontrun{
