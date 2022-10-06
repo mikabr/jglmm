@@ -1,6 +1,6 @@
 #' @keywords internal
 coef_trans <- function(coef_names) {
-  coef_names |> stringr::str_replace_all(": ", "=")
+  coef_names |> str_replace_all(": ", "=")
 }
 
 #' Extract fixed-effects estimates
@@ -23,7 +23,7 @@ fixef.jglmm <- function(x) {
   julia_assign("model", x$model)
   fixef_vals <- julia_eval("fixef(model);")
   fixef_names <- julia_eval("fixefnames(model);") |> coef_trans()
-  rlang::set_names(fixef_vals, fixef_names)
+  set_names(fixef_vals, fixef_names)
 }
 
 #' Calculate variance-covariance matrix for a fitted model object
@@ -105,12 +105,12 @@ ranef.jglmm <- function(x) {
   ranef_terms <- julia_eval("keys(model_ranef)")
   model_ranef <- julia_eval("model_ranef = map(DataFrame, raneftables(model));")
   cond_var <- julia_eval("condVar(model)")
-  purrr::map(1:length(model_ranef), \(i) {
-    df <- dplyr::as_tibble(model_ranef[[i]]) |> dplyr::rename_with(coef_trans)
+  map(1:length(model_ranef), \(i) {
+    df <- as_tibble(model_ranef[[i]]) |> rename_with(coef_trans)
     attr(df, "postVar") <- cond_var[[i]]
     return(df)
   }) |>
-    purrr::set_names(ranef_terms)
+    set_names(ranef_terms)
 }
 
 
@@ -135,4 +135,9 @@ ranef.jglmm <- function(x) {
 fitted.jglmm <- function(x) {
   julia_assign("model", x$model)
   julia_eval("fitted(model)")
+}
+
+influence <- function(x) {
+  julia_assign("model", x$model)
+  julia_eval("leverage(model)")
 }

@@ -43,10 +43,10 @@ tidy.jglmm <- function(x) {
                                      statistic = coef.cols[3],
                                      df = dof(model),
                                      p_value = coef.cols[4]);")
-  fixed <- julia_eval("coef_df") |> dplyr::as_tibble() |>
-    dplyr::rename_with(~stringr::str_replace_all(.x, "_", "\\.")) |>
-    dplyr::mutate(effect = "fixed", group = NA, term = coef_trans(term),
-                  param = "beta", .before = dplyr::everything())
+  fixed <- julia_eval("coef_df") |> as_tibble() |>
+    rename_with(~str_replace_all(.x, "_", "\\.")) |>
+    mutate(effect = "fixed", group = NA, term = coef_trans(term),
+                  param = "beta", .before = everything())
 
   # get variance/covariance estimates
   # extracted code from VarCorr to get individual values
@@ -58,27 +58,27 @@ tidy.jglmm <- function(x) {
   corr_terms <- julia_eval("collect.(values.(getproperty.(values(σρ), :ρ)));")
   sd_resid <- julia_eval("vcs = vc.s;") # sd for residuals
 
-  terms <- terms |> stringr::str_replace(": ", "=")
+  terms <- terms |> str_replace(": ", "=")
   n_terms <- length(sd_terms) / length(groups)
-  sd_df <- dplyr::tibble(group = rep(groups, each = n_terms), param = "sd",
+  sd_df <- tibble(group = rep(groups, each = n_terms), param = "sd",
                          term = terms, estimate = sd_terms)
 
-  corr_df <- purrr::map2_df(groups, corr_terms, function(group, corrs) {
+  corr_df <- map2_df(groups, corr_terms, function(group, corrs) {
     corr_mat <- matrix(nrow = n_terms, ncol = n_terms,
                        dimnames = list(terms[1:n_terms], terms[1:n_terms]))
     corr_mat[upper.tri(corr_mat)] <- corrs
-    dplyr::as_tibble(corr_mat, rownames = "term1") |>
-      tidyr::pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
-      dplyr::filter(!is.na(estimate)) |>
-      tidyr::unite(term, term1, term2, sep = ".") |>
-      dplyr::mutate(group = group, param = "cor")
+    as_tibble(corr_mat, rownames = "term1") |>
+      pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
+      filter(!is.na(estimate)) |>
+      unite(term, term1, term2, sep = ".") |>
+      mutate(group = group, param = "cor")
   })
 
-  ran_pars <- dplyr::bind_rows(sd_df, corr_df) |>
-    dplyr::mutate(effect = "ran_pars", .before = dplyr::everything())
+  ran_pars <- bind_rows(sd_df, corr_df) |>
+    mutate(effect = "ran_pars", .before = everything())
 
   # combine fixed and varcorr
-  dplyr::bind_rows(fixed, ran_pars)
+  bind_rows(fixed, ran_pars)
 }
 
 #' @rdname jglmm_tidiers
@@ -93,5 +93,5 @@ augment.jglmm <- function(x) {
   julia_assign("model", x$model)
   fits <- julia_eval("fitted(model)")
   resids <- julia_eval("residuals(model)")
-  x$data |> dplyr::mutate(.fitted = fits, .resid = resids)
+  x$data |> mutate(.fitted = fits, .resid = resids)
 }

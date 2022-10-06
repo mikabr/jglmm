@@ -69,16 +69,16 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
     if (REML) {
       warning("REML not well-defined for generalized linear mixed models; ignoring")
     }
-    model_args <- c(model_args, glue("{stringr::str_to_title(family)}()"))
+    model_args <- c(model_args, glue("{str_to_title(family)}()"))
     if (!is.null(link)) {
-      model_args <- c(model_args, glue("{stringr::str_to_title(link)}Link()"))
+      model_args <- c(model_args, glue("{str_to_title(link)}Link()"))
     }
   }
 
   if (!is.null(contrasts)) {
-    contrasts_args <- purrr::map2_chr(
+    contrasts_args <- map2_chr(
       contrasts, names(contrasts),
-      \(c, nc) glue(":{nc} => {stringr::str_to_title(c)}Coding()")) |>
+      \(c, nc) glue(":{nc} => {str_to_title(c)}Coding()")) |>
       paste(collapse = ", ")
     model_args <- c(model_args, glue("contrasts = Dict({contrasts_args})"))
   }
