@@ -55,7 +55,8 @@ tidy.jglmm <- function(x) {
   groups <- julia_eval("nmvec = string.([keys(σρ)...]);") # names of groups
   terms <- julia_eval("cnmvec = string.(foldl(vcat, [keys(sig)...] for sig in getproperty.(values(σρ), :σ)));") # names of terms
   sd_terms <- julia_eval("σvec = vcat(collect.(values.(getproperty.(values(σρ), :σ)))...);") # sd for each term
-  corr_terms <- julia_eval("collect.(values.(getproperty.(values(σρ), :ρ)));")
+  corr_terms <- julia_eval("values.(getproperty.(values(σρ), :ρ));") |> flatten()
+  # corr_terms <- julia_eval("collect.(values.(getproperty.(values(σρ), :ρ)));")
   sd_resid <- julia_eval("vcs = vc.s;") # sd for residuals
 
   terms <- terms |> str_replace(": ", "=")
@@ -63,18 +64,25 @@ tidy.jglmm <- function(x) {
   sd_df <- tibble(group = rep(groups, each = n_terms), param = "sd",
                          term = terms, estimate = sd_terms)
 
-  corr_df <- map2_df(groups, corr_terms, function(group, corrs) {
-    corr_mat <- matrix(nrow = n_terms, ncol = n_terms,
-                       dimnames = list(terms[1:n_terms], terms[1:n_terms]))
-    corr_mat[upper.tri(corr_mat)] <- corrs
-    as_tibble(corr_mat, rownames = "term1") |>
-      pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
-      filter(!is.na(estimate)) |>
-      unite(term, term1, term2, sep = ".") |>
-      mutate(group = group, param = "cor")
-  })
+  if (length(corr_terms) == 0) {
+    corr_df <- tibble()
+  } else {
+    corr_df <- map2_df(groups, corr_terms, function(group, corrs) {
+      corr_mat <- matrix(nrow = n_terms, ncol = n_terms,
+                         dimnames = list(terms[1:n_terms], terms[1:n_terms]))
+      corr_mat[upper.tri(corr_mat)] <- corrs
+      as_tibble(corr_mat, rownames = "term1") |>
+        pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
+        filter(!is.na(estimate)) |>
+        unite(term, term1, term2, sep = ".") |>
+        mutate(group = group, param = "cor")
+    })
+  }
 
-  ran_pars <- bind_rows(sd_df, corr_df) |>
+  resid_df <- tibble(group = "Residual", param = "sd", term = "Observation",
+                     estimate = sd_resid)
+
+  ran_pars <- bind_rows(sd_df, corr_df, resid_df) |>
     mutate(effect = "ran_pars", .before = everything())
 
   # combine fixed and varcorr
