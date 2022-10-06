@@ -10,7 +10,8 @@ jglmm(
   family = "normal",
   link = NULL,
   weights = NULL,
-  contrasts = NULL
+  contrasts = NULL,
+  REML = FALSE
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ separating expressions for design matrices from grouping factors.}
 \item{contrasts}{(optional) A named list mapping column names of categorical
 variables in data to coding schemes (defaults to dummy coding all
 categorical variables).}
+
+\item{REML}{(optional) A logical indicating whether REML should be used
+instead of maximum likelihood (defaults to \code{FALSE}).}
 }
 \value{
 An object of class `jglmm`.

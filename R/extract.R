@@ -5,6 +5,8 @@ coef_trans <- function(coef_names) {
 
 #' Extract fixed-effects estimates
 #'
+#' Extract the fixed-effects estimates from a `jglmm` object.
+#'
 #' @importFrom lme4 fixef
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #'
@@ -25,6 +27,9 @@ fixef.jglmm <- function(x) {
 }
 
 #' Calculate variance-covariance matrix for a fitted model object
+#'
+#' Extract the variance-covariance matrix of the main parameters from a
+#' `jglmm` object.
 #'
 #' @importFrom stats vcov
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
@@ -52,12 +57,12 @@ vcov.jglmm <- function(x) {
 #'
 #' Extract the estimated standard deviation of the errors, the "residual
 #' standard deviation" (also misnamed the "residual standard error"), from a
-#' fitted model.
+#' `jglmm` object.
 #'
 #' @importFrom stats sigma
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #'
-#' @return
+#' @return Estimate of σ, the standard deviation of the per-observation noise.
 #' @export
 #'
 #' @examples
@@ -73,13 +78,18 @@ sigma.jglmm <- function(x) {
 
 #' Extract the modes of the random effects
 #'
-#' Extract the conditional modes of the random effects from a fitted `jglmm`
-#' object.
+#' Extract the conditional modes of the random effects from a `jglmm` object.
 #'
 #' @importFrom lme4 ranef
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #'
-#' @return A list of tibbles, one for each random effect group.
+#' @return A list of data frames, one for each grouping factor for the random
+#'   effects. The number of rows in the data frame is the number of levels of
+#'   the grouping factor. The number of columns is the dimension of the random
+#'   effect associated with each level of the factor. Each of the data frames
+#'   has an attribute called "postVar", which contains an array for each
+#'   random-effects term with the variance-covariance matrices for each level of
+#'   the grouping factor.
 #' @export
 #'
 #' @examples
@@ -101,4 +111,28 @@ ranef.jglmm <- function(x) {
     return(df)
   }) |>
     purrr::set_names(ranef_terms)
+}
+
+
+#' Extract model fitted values
+#'
+#' Extract the fitted values from a `jglmm` object.
+#'
+#' @importFrom stats fitted
+#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#'
+#' @return Vector of fitted values extracted from the model.
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' jglmm_setup()
+#' cbpp <- dplyr::mutate(lme4::cbpp, prop = incidence / size)
+#' gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
+#'             weights = cbpp$size)
+#' fitted(gm)
+#' }
+fitted.jglmm <- function(x) {
+  julia_assign("model", x$model)
+  julia_eval("fitted(model)")
 }

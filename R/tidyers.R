@@ -1,7 +1,9 @@
 #' Tidying methods for jglmm models
 #'
+#' These methods tidy the coefficients and fitted values from `jglmm` objects.
+#'
 #' @importFrom generics augment tidy
-#' @param x An object of class `jglmm`, as returned by `jglmm`.
+#' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #'
 #' @name jglmm_tidiers
 #'
@@ -18,7 +20,16 @@ NULL
 
 #' @rdname jglmm_tidiers
 #'
-#' @return `tidy` returns a tibble of fixed effect estimates
+#' @return `tidy` returns a data frame with one row for each estimated effect.
+#' It contains the columns:
+#'   \item{effect}{\code{"fixed"} for fixed effects, \code{"ran_pars"} for random effect parameters}
+#'   \item{group}{the group within which the random effect is being estimated (\code{NA} for fixed effects)}
+#'   \item{param}{parameter being estimated (\code{beta} for fixed effects, \code{sd} or \code{cor} for random effect parameters)}
+#'   \item{term}{term being estimated}
+#'   \item{estimate}{estimated coefficient}
+#'   \item{std.error}{standard error}
+#'   \item{statistic}{z-statistic (\code{NA} for modes)}
+#'   \item{p.value}{p-value computed from z-statistic (\code{NA} for modes)}
 #'
 #' @export
 tidy.jglmm <- function(x) {
@@ -72,13 +83,15 @@ tidy.jglmm <- function(x) {
 
 #' @rdname jglmm_tidiers
 #'
-#' @return `augment` returns a tibble of the original data used to fit the model
-#'   with an additional `.fitted` column containing the fitted response values.
+#' @return `augment` returns one row for each original observation, with these
+#' columns added:
+#'   \item{.fitted}{predicted values}
+#'   \item{.resid}{residuals}
 #'
 #' @export
 augment.jglmm <- function(x) {
   julia_assign("model", x$model)
   fits <- julia_eval("fitted(model)")
-  x$data$.fitted <- fits
-  x$data |> dplyr::as_tibble()
+  resids <- julia_eval("residuals(model)")
+  x$data |> dplyr::mutate(.fitted = fits, .resid = resids)
 }

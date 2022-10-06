@@ -11,16 +11,27 @@
 \method{augment}{jglmm}(x)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
 }
 \value{
-`tidy` returns a tibble of fixed effect estimates
+`tidy` returns a data frame with one row for each estimated effect.
+It contains the columns:
+  \item{effect}{\code{"fixed"} for fixed effects, \code{"ran_pars"} for random effect parameters}
+  \item{group}{the group within which the random effect is being estimated (\code{NA} for fixed effects)}
+  \item{param}{parameter being estimated (\code{beta} for fixed effects, \code{sd} or \code{cor} for random effect parameters)}
+  \item{term}{term being estimated}
+  \item{estimate}{estimated coefficient}
+  \item{std.error}{standard error}
+  \item{statistic}{z-statistic (\code{NA} for modes)}
+  \item{p.value}{p-value computed from z-statistic (\code{NA} for modes)}
 
-`augment` returns a tibble of the original data used to fit the model
-  with an additional `.fitted` column containing the fitted response values.
+`augment` returns one row for each original observation, with these
+columns added:
+  \item{.fitted}{predicted values}
+  \item{.resid}{residuals}
 }
 \description{
-Tidying methods for jglmm models
+These methods tidy the coefficients and fitted values from `jglmm` objects.
 }
 \examples{
 \dontrun{
