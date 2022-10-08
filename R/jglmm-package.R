@@ -8,6 +8,6 @@
 #' @importFrom JuliaCall julia_assign julia_command julia_eval julia_library julia_setup
 #' @importFrom rlang .data set_names
 #' @importFrom stringr str_replace str_replace_all str_to_title
-#' @importFrom purrr map map2_chr map2_df
+#' @importFrom purrr map map2_chr map2_df map_df
 ## usethis namespace: end
 NULL

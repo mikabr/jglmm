@@ -45,8 +45,8 @@ tidy.jglmm <- function(x) {
                                      p_value = coef.cols[4]);")
   fixed <- julia_eval("coef_df") |> as_tibble() |>
     rename_with(~str_replace_all(.x, "_", "\\.")) |>
-    mutate(effect = "fixed", group = NA, term = coef_trans(term),
-                  param = "beta", .before = everything())
+    mutate(effect = "fixed", group = NA, term = coef_trans(.data$term),
+           param = "beta", .before = everything())
 
   # get variance/covariance estimates
   # extracted code from VarCorr to get individual values
@@ -76,9 +76,9 @@ tidy.jglmm <- function(x) {
       corr_mat <- matrix(nrow = n_terms, ncol = n_terms, dimnames = list(terms, terms))
       corr_mat[upper.tri(corr_mat)] <- corrs
       corr_df <- as_tibble(corr_mat, rownames = "term1") |>
-        pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
-        filter(!is.na(estimate)) |>
-        unite(term, term1, term2, sep = ".") |>
+        pivot_longer(-.data$term1, names_to = "term2", values_to = "estimate") |>
+        filter(!is.na(.data$estimate)) |>
+        unite(.data$term, .data$term1, .data$term2, sep = ".") |>
         mutate(group = group, param = "cor")
     }
 
