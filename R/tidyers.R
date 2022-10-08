@@ -51,41 +51,47 @@ tidy.jglmm <- function(x) {
   # get variance/covariance estimates
   # extracted code from VarCorr to get individual values
   julia_command("vc = VarCorr(model);")
-  julia_command("σρ = vc.σρ;")
-  groups <- julia_eval("nmvec = string.([keys(σρ)...]);") # names of groups
-  terms <- julia_eval("cnmvec = string.(foldl(vcat, [keys(sig)...] for sig in getproperty.(values(σρ), :σ)));") # names of terms
-  sd_terms <- julia_eval("σvec = vcat(collect.(values.(getproperty.(values(σρ), :σ)))...);") # sd for each term
-  corr_terms <- julia_eval("values.(getproperty.(values(σρ), :ρ));") |> flatten()
-  # corr_terms <- julia_eval("collect.(values.(getproperty.(values(σρ), :ρ)));")
-  sd_resid <- julia_eval("vcs = vc.s;") # sd for residuals
+  julia_command("σρ = vc.σρ;") # sd and corr for terms within groups
 
-  terms <- terms |> str_replace(": ", "=")
-  n_terms <- length(sd_terms) / length(groups)
-  sd_df <- tibble(group = rep(groups, each = n_terms), param = "sd",
-                         term = terms, estimate = sd_terms)
+  # groups <- julia_eval("nmvec = string.([keys(σρ)...]);") # names of groups
+  groups <- julia_eval("string.([keys(σρ)...]);") # names of groups
 
-  if (length(corr_terms) == 0) {
-    corr_df <- tibble()
-  } else {
-    corr_df <- map2_df(groups, corr_terms, function(group, corrs) {
-      corr_mat <- matrix(nrow = n_terms, ncol = n_terms,
-                         dimnames = list(terms[1:n_terms], terms[1:n_terms]))
+  # need to iterate over groups because they can have different sets of terms
+  group_df <- map_df(1:length(groups), \(i) {
+    group <- groups[i]
+    julia_command(glue("σi = σρ[{i}].σ;")) # sds for this group
+    terms <- julia_eval("string.(foldl(vcat, [keys(σi)...]))") |> str_replace(": ", "=")
+    sd_terms <- julia_eval("collect(values(σi))") # sd for each term
+    sd_df <- tibble(group = group, param = "sd", term = terms, estimate = sd_terms)
+
+    corrs <- julia_eval(glue("ρi = σρ[{i}].ρ;")) # corrs for this group
+    if (length(corrs) == 0) {
+      corr_df <- tibble()
+    } else {
+      corrs <- julia_eval(glue("ρi = collect(values.(ρi));")) # corrs for this group
+      n_terms <- length(terms)
+
+      # figure out how to map corrs to terms by putting them in upper triangle
+      # of a terms x terms matrix
+      corr_mat <- matrix(nrow = n_terms, ncol = n_terms, dimnames = list(terms, terms))
       corr_mat[upper.tri(corr_mat)] <- corrs
-      as_tibble(corr_mat, rownames = "term1") |>
+      corr_df <- as_tibble(corr_mat, rownames = "term1") |>
         pivot_longer(-term1, names_to = "term2", values_to = "estimate") |>
         filter(!is.na(estimate)) |>
         unite(term, term1, term2, sep = ".") |>
         mutate(group = group, param = "cor")
-    })
-  }
+    }
 
+    bind_rows(sd_df, corr_df)
+  })
+
+  sd_resid <- julia_eval("vcs = vc.s;") # sd for residuals
   resid_df <- tibble(group = "Residual", param = "sd", term = "Observation",
                      estimate = sd_resid)
 
-  ran_pars <- bind_rows(sd_df, corr_df, resid_df) |>
+  ran_pars <- bind_rows(group_df, resid_df) |>
     mutate(effect = "ran_pars", .before = everything())
 
-  # combine fixed and varcorr
   bind_rows(fixed, ran_pars)
 }
 
