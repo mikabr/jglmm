@@ -4,10 +4,12 @@
 \alias{fitted.jglmm}
 \title{Extract model fitted values}
 \usage{
-\method{fitted}{jglmm}(x)
+\method{fitted}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 Vector of fitted values extracted from the model.

@@ -4,10 +4,12 @@
 \alias{nobs.jglmm}
 \title{Extract the Number of Observations from a Fit}
 \usage{
-\method{nobs}{jglmm}(x)
+\method{nobs}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric giving the number of observations.

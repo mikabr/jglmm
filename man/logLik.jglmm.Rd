@@ -4,10 +4,12 @@
 \alias{logLik.jglmm}
 \title{Extract Log-Likelihood}
 \usage{
-\method{logLik}{jglmm}(x)
+\method{logLik}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 An object of class \code{logLik}, a number with attribute \code{"df"}

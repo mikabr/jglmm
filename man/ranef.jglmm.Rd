@@ -4,10 +4,12 @@
 \alias{ranef.jglmm}
 \title{Extract the modes of the random effects}
 \usage{
-\method{ranef}{jglmm}(x)
+\method{ranef}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A list of data frames, one for each grouping factor for the random

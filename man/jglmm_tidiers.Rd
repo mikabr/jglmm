@@ -6,12 +6,14 @@
 \alias{augment.jglmm}
 \title{Tidying methods for jglmm models}
 \usage{
-\method{tidy}{jglmm}(x)
+\method{tidy}{jglmm}(x, ...)
 
-\method{augment}{jglmm}(x)
+\method{augment}{jglmm}(x, ...)
 }
 \arguments{
 \item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 `tidy` returns a data frame with one row for each estimated effect.

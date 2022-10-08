@@ -4,6 +4,7 @@
 #'
 #' @importFrom generics augment tidy
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @name jglmm_tidiers
 #'
@@ -32,7 +33,7 @@ NULL
 #'   \item{p.value}{p-value computed from z-statistic (\code{NA} for modes)}
 #'
 #' @export
-tidy.jglmm <- function(x) {
+tidy.jglmm <- function(x, ...) {
   julia_assign("model", x$model)
 
   # get fixed effect estimates
@@ -78,7 +79,7 @@ tidy.jglmm <- function(x) {
       corr_df <- as_tibble(corr_mat, rownames = "term1") |>
         pivot_longer(-.data$term1, names_to = "term2", values_to = "estimate") |>
         filter(!is.na(.data$estimate)) |>
-        unite(.data$term, .data$term1, .data$term2, sep = ".") |>
+        unite("term", .data$term1, .data$term2, sep = ".") |>
         mutate(group = group, param = "cor")
     }
 
@@ -103,7 +104,7 @@ tidy.jglmm <- function(x) {
 #'   \item{.resid}{residuals}
 #'
 #' @export
-augment.jglmm <- function(x) {
+augment.jglmm <- function(x, ...) {
   julia_assign("model", x$model)
   fits <- julia_eval("fitted(model)")
   resids <- julia_eval("residuals(model)")

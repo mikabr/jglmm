@@ -2,8 +2,8 @@
 % Please edit documentation in R/jglmm-package.R
 \docType{package}
 \name{jglmm-package}
-\alias{jglmm}
 \alias{jglmm-package}
+\alias{_PACKAGE}
 \title{jglmm: Generalized Mixed-Effects Models in Julia}
 \description{
 R package for interfacing with Julia's MixedModels library to fit generalized linear mixed-effects models, similar to the lme4 package in R (\url{http://dmbates.github.io/MixedModels.jl/latest/}).

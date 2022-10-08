@@ -40,13 +40,18 @@ fit_models <- function(models) {
     df_fits <- map2(names(formula_list), formula_list, function(name, form) {
       message(name)
       jglmm(form, data = dataset)
-    })
+    }) |> set_names(names(formula_list))
   })
 }
 
 # run fun on all fits in list as returned by fit_models
-test_method <- function(fits, fun) {
-  map(fits, \(model_fits) map(model_fits, \(mf) fun(mf)))
+test_method <- function(fits, method) {
+  map(fits, function(model_fits) {
+    map2(names(model_fits), model_fits, function(name, model_fit) {
+      message(name)
+      method(model_fit)
+    })
+  })
 }
 
 test_fits <- fit_models(test_models)

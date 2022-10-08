@@ -4,10 +4,12 @@
 \alias{deviance.jglmm}
 \title{Model Deviance}
 \usage{
-\method{deviance}{jglmm}(x)
+\method{deviance}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric giving the deviance extracted from the fitted model.

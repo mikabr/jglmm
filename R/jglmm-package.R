@@ -1,4 +1,5 @@
 #' @keywords internal
+#' @aliases jglmm-package
 "_PACKAGE"
 
 ## usethis namespace: start

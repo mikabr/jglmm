@@ -8,7 +8,8 @@ coef_trans <- function(coef_names) {
 #' Extract the fixed-effects estimates from a `jglmm` object.
 #'
 #' @importFrom lme4 fixef
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A named numeric vector of fixed-effects estimates.
 #' @export
@@ -19,8 +20,8 @@ coef_trans <- function(coef_names) {
 #' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 #' fixef(lm1)
 #' }
-fixef.jglmm <- function(x) {
-  julia_assign("model", x$model)
+fixef.jglmm <- function(object, ...) {
+  julia_assign("model", object$model)
   fixef_vals <- julia_eval("fixef(model);")
   fixef_names <- julia_eval("fixefnames(model);") |> coef_trans()
   set_names(fixef_vals, fixef_names)
@@ -32,7 +33,8 @@ fixef.jglmm <- function(x) {
 #' `jglmm` object.
 #'
 #' @importFrom stats vcov
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A matrix of the estimated covariances between the parameter estimates
 #'   in the linear or non-linear predictor of the model.
@@ -44,8 +46,8 @@ fixef.jglmm <- function(x) {
 #' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 #' vcov(lm1)
 #' }
-vcov.jglmm <- function(x) {
-  julia_assign("model", x$model)
+vcov.jglmm <- function(object, ...) {
+  julia_assign("model", object$model)
   vcov_matrix <- julia_eval("vcov(model);")
   coef_names <- julia_eval("coefnames(model);") |> coef_trans()
   colnames(vcov_matrix) <- coef_names
@@ -60,7 +62,8 @@ vcov.jglmm <- function(x) {
 #' `jglmm` object.
 #'
 #' @importFrom stats sigma
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return Estimate of σ, the standard deviation of the per-observation noise.
 #' @export
@@ -71,8 +74,8 @@ vcov.jglmm <- function(x) {
 #' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 #' sigma(lm1)
 #' }
-sigma.jglmm <- function(x) {
-  julia_assign("model", x$model)
+sigma.jglmm <- function(object, ...) {
+  julia_assign("model", object$model)
   julia_eval("sdest(model);")
 }
 
@@ -81,7 +84,8 @@ sigma.jglmm <- function(x) {
 #' Extract the conditional modes of the random effects from a `jglmm` object.
 #'
 #' @importFrom lme4 ranef
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A list of data frames, one for each grouping factor for the random
 #'   effects. The number of rows in the data frame is the number of levels of
@@ -100,8 +104,8 @@ sigma.jglmm <- function(x) {
 #'             weights = cbpp$size)
 #' ranef(gm)
 #' }
-ranef.jglmm <- function(x) {
-  julia_assign("model", x$model)
+ranef.jglmm <- function(object, ...) {
+  julia_assign("model", object$model)
   ranef_terms <- julia_eval("keys(model_ranef)")
   model_ranef <- julia_eval("model_ranef = map(DataFrame, raneftables(model));")
   cond_var <- julia_eval("condVar(model)")
@@ -119,7 +123,8 @@ ranef.jglmm <- function(x) {
 #' Extract the fitted values from a `jglmm` object.
 #'
 #' @importFrom stats fitted
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return Vector of fitted values extracted from the model.
 #' @export
@@ -132,8 +137,8 @@ ranef.jglmm <- function(x) {
 #'             weights = cbpp$size)
 #' fitted(gm)
 #' }
-fitted.jglmm <- function(x) {
-  julia_assign("model", x$model)
+fitted.jglmm <- function(object, ...) {
+  julia_assign("model", object$model)
   julia_eval("fitted(model)")
 }
 
@@ -146,7 +151,8 @@ fitted.jglmm <- function(x) {
 #' generalized linear mixed models.
 #'
 #' @importFrom stats hatvalues
-#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param model An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A numeric vector containing the diagonal elements of the hat matrix.
 #' @export
@@ -157,7 +163,7 @@ fitted.jglmm <- function(x) {
 #' lm1 <- jglmm(Reaction ~ Days + (Days | Subject), lme4::sleepstudy)
 #' hatvalues(lm1)
 #' }
-hatvalues.jglmm <- function(x) {
-  julia_assign("model", x$model)
+hatvalues.jglmm <- function(model, ...) {
+  julia_assign("model", model$model)
   julia_eval("leverage(model)")
 }

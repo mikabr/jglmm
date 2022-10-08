@@ -4,10 +4,12 @@
 \alias{hatvalues.jglmm}
 \title{Diagonal elements of the hat matrix}
 \usage{
-\method{hatvalues}{jglmm}(x)
+\method{hatvalues}{jglmm}(model, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{model}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric vector containing the diagonal elements of the hat matrix.

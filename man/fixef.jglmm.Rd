@@ -4,10 +4,12 @@
 \alias{fixef.jglmm}
 \title{Extract fixed-effects estimates}
 \usage{
-\method{fixef}{jglmm}(x)
+\method{fixef}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A named numeric vector of fixed-effects estimates.

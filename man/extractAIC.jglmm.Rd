@@ -4,13 +4,17 @@
 \alias{extractAIC.jglmm}
 \title{Extract AIC from a Fitted Model}
 \usage{
-\method{extractAIC}{jglmm}(x, k = 2)
+\method{extractAIC}{jglmm}(fit, scale = 0, k = 2, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{fit}{An object of class `jglmm`, as returned by `jglmm`.}
+
+\item{scale}{Not currently used (see extractAIC).}
 
 \item{k}{Numeric specifying the 'weight' of the
 \emph{degrees of freedom} part in the AIC formula.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric vector of length 2, with first and second elements giving

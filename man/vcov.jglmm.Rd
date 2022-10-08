@@ -4,10 +4,12 @@
 \alias{vcov.jglmm}
 \title{Calculate variance-covariance matrix for a fitted model object}
 \usage{
-\method{vcov}{jglmm}(x)
+\method{vcov}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A matrix of the estimated covariances between the parameter estimates

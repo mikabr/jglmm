@@ -4,10 +4,12 @@
 \alias{sigma.jglmm}
 \title{Extract residual standard deviation 'sigma'}
 \usage{
-\method{sigma}{jglmm}(x)
+\method{sigma}{jglmm}(object, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm()`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm()`.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 Estimate of σ, the standard deviation of the per-observation noise.
