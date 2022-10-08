@@ -1,0 +1,298 @@
+---
+title: "jglmm tests"
+date: "`r Sys.Date()`"
+output: 
+  html_notebook: 
+    highlight: tango
+    theme: cosmo
+editor_options: 
+  chunk_output_type: console
+---
+
+The goal of this document is to reproduce the tests documented in https://github.com/JuliaStats/MixedModels.jl/blob/main/test/modelcache.jl
+
+```{r}
+library(lme4)
+library(jglmm)
+library(tidyverse)
+library(glue)
+library(broom.mixed)
+
+options(JULIA_HOME = "/Applications/Julia-1.8.app/Contents/Resources/julia/bin/") 
+jglmm_setup()
+```
+
+
+
+```
+:cbpp => [@formula((incid/hsz) ~ 1 + period + (1|herd))]
+```
+
+```{r}
+cbpp_m <- jglmm(incid / hsz ~ 1 + period + (1 | herd), data = jglmm::cbpp)
+tidy(cbpp_m)
+
+cbpp_m_lmer <- lmer(incid / hsz ~ 1 + period + (1 | herd), data = jglmm::cbpp)
+tidy(cbpp_m_lmer)
+```
+
+
+```
+:contra => [@formula(use ~ 1+age+abs2(age)+urban+livch+(1|urban&dist))
+            @formula(use ~ 1+urban+(1+urban|dist))]
+```
+
+```{r}
+contra_m1 <- jglmm(use ~ 1 + age + abs2(age) + urban + livch + (1 | urban & dist),
+                   jglmm::contra, family = "binomial")
+tidy(contra_m1)
+
+contra_m1_lmer <- glmer(use ~ 1 + age + age^2 + urban + livch + (1 | urban:dist),
+                        jglmm::contra |> mutate(use = use == "Y"),
+                        family = "binomial")
+tidy(contra_m1_lmer)
+
+contra_m2 <- jglmm(use ~ 1 + urban + (1 + urban | dist), jglmm::contra,
+                   family = "binomial")
+tidy(contra_m2)
+
+contra_m2_lmer <- glmer(use ~ 1 + urban + (1 + urban | dist),
+                        jglmm::contra |> mutate(use = use == "Y"),
+                        family = "binomial")
+tidy(contra_m2_lmer)
+```
+
+
+```
+:grouseticks => [@formula(ticks ~ 1+year+ch+ (1|index) + (1|brood) + (1|location))]
+```
+
+```{r}
+grouseticks_m <- jglmm(ticks ~ 1 + year + height + (1 | index) + (1 | brood) + (1 | location), jglmm::grouseticks)
+tidy(grouseticks_m)
+
+# TODO: each observation has a unique index, can't fit
+# grouseticks_lmer <- lmer(ticks ~ 1 + year + height + (1 | index) + (1 | brood) + (1 | location),
+#                          jglmm::grouseticks)
+grouseticks_lmer <- lmer(ticks ~ 1 + year + height + (1 | brood) + (1 | location),
+                         jglmm::grouseticks)
+tidy(grouseticks_lmer)
+```
+
+
+```
+verbagg => [@formula(r2 ~ 1+anger+gender+btype+situ+(1|subj)+(1|item))]
+)
+```
+
+```{r}
+verbagg_m <- jglmm(r2 ~ 1 + anger + gender + btype + situ + (1 | subj) + (1 | item),
+                   jglmm::verbagg, family = "binomial")
+tidy(verbagg_m)
+
+verbagg_lmer <- glmer(r2 ~ 1 + anger + gender + btype + situ + (1 | subj) + (1 | item),
+                      jglmm::verbagg |> mutate(r2 = r2 == "Y"), family = "binomial")
+tidy(verbagg_lmer)
+```
+
+```
+oxide => [@formula(Thickness ~ 1 + (1|Lot/Wafer)),
+               @formula(Thickness ~ 1 + Source + (1+Source|Lot) + (1+Source|Lot&Wafer))]
+```
+
+```{r}
+oxide_m1 <- jglmm(Thickness ~ 1 + (1 | Lot / Wafer), jglmm::oxide)
+tidy(oxide_m1)
+oxide_m1_lmer <- lmer(Thickness ~ 1 + (1 | Lot / Wafer), jglmm::oxide)
+tidy(oxide_m1_lmer)
+
+oxide_m2 <- jglmm(Thickness ~ 1 + Source + (1 + Source | Lot) + (1 + Source | Lot & Wafer),
+                  jglmm::oxide)
+tidy(oxide_m2)
+
+# TODO: Model failed to converge: degenerate  Hessian with 1 negative eigenvalues
+oxide_m2_lmer <- lmer(Thickness ~ 1 + Source + (1 + Source | Lot) + (1 + Source | Lot:Wafer),
+                      jglmm::oxide)
+tidy(oxide_m2_lmer)
+```
+
+```
+dyestuff => [@formula(yield ~ 1 + (1|batch))]
+```
+
+```{r}
+dyestuff_m <- jglmm(yield ~ 1 + (1 | batch), jglmm::dyestuff)
+tidy(dyestuff_m)
+
+dyestuff_m_lmer <- lmer(yield ~ 1 + (1 | batch), jglmm::dyestuff)
+tidy(dyestuff_m_lmer)
+```
+
+```
+dyestuff2 => [@formula(yield ~ 1 + (1|batch))]
+```
+
+```{r}
+dyestuff2_m <- jglmm(yield ~ 1 + (1 | batch), jglmm::dyestuff2)
+tidy(dyestuff2_m)
+
+# TODO: boundary (singular) fit
+dyestuff2_m_lmer <- lmer(yield ~ 1 + (1 | batch), jglmm::dyestuff2)
+tidy(dyestuff2_m_lmer)
+```
+
+```
+d3 => [@formula(y ~ 1 + u + (1+u|g) + (1+u|h) + (1+u|i))]
+```
+
+```{r}
+d3_m <- jglmm(y ~ 1 + u + (1 + u | g) + (1 + u | h) + (1 + u | i), jglmm::d3)
+tidy(d3_m)
+
+# TODO: Model is nearly unidentifiable: very large eigenvalue
+d3_m_lmer <- lmer(y ~ 1 + u + (1 + u | g) + (1 + u | h) + (1 + u | i), jglmm::d3)
+tidy(d3_m_lmer)
+```
+
+
+```
+:insteval => [
+        @formula(y ~ 1 + service + (1|s) + (1|d) + (1|dept)),
+        @formula(y ~ 1 + service*dept + (1|s) + (1|d)),
+    ]
+```
+
+```{r}
+insteval_m1 <- jglmm(y ~ 1 + service + (1 | s) + (1 | d) + (1 | dept), jglmm::insteval)
+tidy(insteval_m1)
+
+insteval_m1_lmer <- lmer(y ~ 1 + service + (1 | s) + (1 | d) + (1 | dept), jglmm::insteval)
+tidy(insteval_m1_lmer)
+
+insteval_m2 <- jglmm(y ~ 1 + service * dept + (1 | s) + (1 | d), jglmm::insteval)
+tidy(insteval_m2)
+
+insteval_m2_lmer <- lmer(y ~ 1 + service * dept + (1 | s) + (1 | d), jglmm::insteval)
+tidy(insteval_m2_lmer)
+```
+
+```
+kb07 => [
+        @formula(rt_trunc ~ 1+spkr+prec+load+(1|subj)+(1|item)),
+        @formula(rt_trunc ~ 1+spkr*prec*load+(1|subj)+(1+prec|item)),
+        @formula(rt_trunc ~ 1+spkr*prec*load+(1+spkr+prec+load|subj)+(1+spkr+prec+load|item)),
+    ]
+```
+
+```{r}
+kb07_m1 <- jglmm(rt_trunc ~ 1 + spkr + prec + load + (1 | subj) + (1 | item),
+                 jglmm::kb07)
+tidy(kb07_m1)
+kb07_m1_lmer <- lmer(rt_trunc ~ 1 + spkr + prec + load + (1 | subj) + (1 | item),
+                     jglmm::kb07)
+tidy(kb07_m1_lmer)
+
+kb07_m2 <- jglmm(rt_trunc ~ 1 + spkr * prec * load + (1 | subj) + (1 + prec | item),
+                 jglmm::kb07)
+tidy(kb07_m2)
+
+kb07_m2_lmer <- lmer(rt_trunc ~ 1 + spkr * prec * load + (1 | subj) + (1 + prec | item),
+                     jglmm::kb07)
+tidy(kb07_m2_lmer)
+
+kb07_m3 <- jglmm(rt_trunc ~ 1 + spkr * prec * load +
+                   (1 + spkr + prec + load | subj) +
+                   (1 + spkr + prec + load | item),
+                 jglmm::kb07)
+tidy(kb07_m3)
+
+# TODO: boundary (singular) fit
+kb07_m3_lmer <- lmer(rt_trunc ~ 1 + spkr * prec * load +
+                       (1 + spkr + prec + load | subj) +
+                       (1 + spkr + prec + load | item),
+                     jglmm::kb07)
+tidy(kb07_m3_lmer)
+```
+
+
+```
+pastes => [
+        @formula(strength ~ 1 + (1|batch&cask)),
+        @formula(strength ~ 1 + (1|batch/cask)),
+    ]
+```
+
+```{r}
+pastes_m1 <- jglmm(strength ~ 1 + (1 | batch & cask), jglmm::pastes)
+tidy(pastes_m1)
+
+pastes_m1_lmer <- lmer(strength ~ 1 + (1 | batch:cask), jglmm::pastes)
+tidy(pastes_m1_lmer)
+
+pastes_m2 <- jglmm(strength ~ 1 + (1 | batch / cask), jglmm::pastes)
+tidy(pastes_m2)
+
+pastes_m2_lmer <- lmer(strength ~ 1 + (1 | batch / cask), jglmm::pastes)
+tidy(pastes_m2_lmer)
+```
+
+```
+penicillin => [@formula(diameter ~ 1 + (1|plate) + (1|sample))]
+```    
+```{r}
+penicillin_m1 <- jglmm(diameter ~ 1 + (1 | plate) + (1 | sample), jglmm::penicillin)
+tidy(penicillin_m1)
+
+penicillin_m1_lmer <- lmer(diameter ~ 1 + (1 | plate) + (1 | sample), jglmm::penicillin)
+tidy(penicillin_m1_lmer)
+```
+
+
+```
+sleepstudy => [
+        @formula(reaction ~ 1 + days + (1|subj)),
+        @formula(reaction ~ 1 + days + zerocorr(1+days|subj)),
+        @formula(reaction ~ 1 + days + (1|subj) + (0+days|subj)),
+        @formula(reaction ~ 1 + days + (1+days|subj)),
+    ],
+)
+```
+
+```{r}
+# hack for enabling Julia using zerocorr in formula
+# julia_command("import RCall.rcopy")
+# julia_command("function rcopy(::Type{RCall.StatsModels.FormulaTerm}, l::Ptr{LangSxp})
+#     expr = rcopy(Expr, l)
+#     @eval RCall.StatsModels.@formula($expr)
+# end")
+```
+
+```{r}
+sleepstudy_m1 <- jglmm(reaction ~ 1 + days + (1 | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m1)
+
+sleepstudy_m1_lmer <- lmer(reaction ~ 1 + days + (1 | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m1_lmer)
+
+# sleepstudy_m2 <- jglmm(reaction ~ 1 + days + zerocorr(1+days|subj), data = sleepstudy)
+sleepstudy_m2 <- jglmm(reaction ~ 1 + days + (1 | subj) + (days | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m2)
+
+# TODO: Model is nearly unidentifiable: large eigenvalue ratio
+sleepstudy_m2_lmer <- lmer(reaction ~ 1 + days + (1 | subj) + (days | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m2_lmer)
+
+sleepstudy_m3 <- jglmm(reaction ~ 1 + days + (1 | subj) + (0 + days | subj),
+                       jglmm::sleepstudy)
+tidy(sleepstudy_m3)
+
+sleepstudy_m3_lmer <- lmer(reaction ~ 1 + days + (1 | subj) + (0 + days | subj),
+                           jglmm::sleepstudy)
+tidy(sleepstudy_m3_lmer)
+
+sleepstudy_m4 <- jglmm(reaction ~ 1 + days + (1 + days | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m4)
+
+sleepstudy_m4_lmer <- lmer(reaction ~ 1 + days + (1 + days | subj), jglmm::sleepstudy)
+tidy(sleepstudy_m4_lmer)
+```
