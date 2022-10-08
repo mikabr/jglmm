@@ -32,12 +32,20 @@ test_that("nobs", {
   test_method(test_fits, nobs)
 })
 
+test_that("predict", {
+  test_method(test_fits, predict)
+})
+
 test_that("ranef", {
   test_method(test_fits, ranef)
 })
 
 test_that("sigma", {
   test_method(test_fits, sigma)
+})
+
+test_that("simulate", {
+  test_method(test_fits, simulate)
 })
 
 test_that("tidy", {

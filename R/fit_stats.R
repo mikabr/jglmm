@@ -27,7 +27,7 @@ logLik.jglmm <- function(object, ...) {
 #'
 #' @importFrom stats extractAIC
 #' @param fit An object of class `jglmm`, as returned by `jglmm`.
-#' @param scale Not currently used (see extractAIC).
+#' @param scale Not currently used (see `extractAIC` generic).
 #' @param k Numeric specifying the 'weight' of the
 #'    \emph{degrees of freedom} part in the AIC formula.
 #' @param ... Optional additional arguments, currently none are used.

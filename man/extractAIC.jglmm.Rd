@@ -9,7 +9,7 @@
 \arguments{
 \item{fit}{An object of class `jglmm`, as returned by `jglmm`.}
 
-\item{scale}{Not currently used (see extractAIC).}
+\item{scale}{Not currently used (see `extractAIC` generic).}
 
 \item{k}{Numeric specifying the 'weight' of the
 \emph{degrees of freedom} part in the AIC formula.}

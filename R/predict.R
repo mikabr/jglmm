@@ -1,7 +1,7 @@
 #' Predictions from a model
 #'
 #' @importFrom stats predict
-#' @param x An object of class `jglmm`, as returned by `jglmm`.
+#' @param object An object of class `jglmm`, as returned by `jglmm`.
 #' @param newdata (optional) A dataframe of new data.
 #' @param allow.new.levels (optional) A logical indicating whether new random
 #'    effects levels in \code{newdata} are allowed. If \code{FALSE} (default),
@@ -12,6 +12,7 @@
 #'    where predictions are returned on the scale of the linear predictors, or
 #'    \code{"response"}, where predictions are returned on the scale of the
 #'    response variable.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A numeric vector of predicted values
 #' @export
@@ -27,18 +28,18 @@
 #' newdata <- with(cbpp, expand.grid(period=unique(period), herd=unique(herd)))
 #' predict(gm1, newdata)
 #' }
-predict.jglmm <- function(x, newdata = NULL, allow.new.levels = FALSE,
-                          type = "link") {
+predict.jglmm <- function(object, newdata = NULL, type = "link",
+                          allow.new.levels = FALSE, ...) {
   stopifnot(type %in% c("link", "response"))
   if(is.null(newdata)) {
-    newdata <- x$data
+    newdata <- object$data
   } else {
-    resp_var <- all.vars(x$formula)[1]
+    resp_var <- all.vars(object$formula)[1]
     # predict in Julia requires a column corresponding to the response variable
     # initialized to a numeric value
     newdata[resp_var] <- 0
   }
-  julia_assign("model", x$model)
+  julia_assign("model", object$model)
   julia_assign("newdata", newdata)
 
   new_re_levels <-  if(allow.new.levels) "population" else "error"
@@ -53,10 +54,12 @@ predict.jglmm <- function(x, newdata = NULL, allow.new.levels = FALSE,
 #' Simulate responses from a model
 #'
 #' @importFrom stats simulate
-#' @param x An object of class `jglmm`, as returned by `jglmm`.
-#' @param newdata (optional) A dataframe of new data.
+#' @param object An object of class `jglmm`, as returned by `jglmm`.
 #' @param nsim (optional) A positive integer indicating the number of responses
 #'    to simulate
+#' @param seed Not currently used (see `simulate` generic).
+#' @param newdata (optional) A dataframe of new data.
+#' @param ... Optional additional arguments, currently none are used.
 #'
 #' @return A numeric vector of simulated values
 #' @export
@@ -70,14 +73,14 @@ predict.jglmm <- function(x, newdata = NULL, allow.new.levels = FALSE,
 #' simulate(gm1)
 #' simulate(gm1, nsim = 5)
 #' newdata <- with(cbpp, expand.grid(period=unique(period), herd=unique(herd)))
-#' simulate(gm1, newdata)
+#' simulate(gm1, newdata = newdata)
 #' }
-simulate.jglmm <- function(x, newdata = NULL, nsim = 1) {
-  julia_assign("model", x$model)
+simulate.jglmm <- function(object, nsim = 1, seed = NULL, newdata = NULL, ...) {
+  julia_assign("model", object$model)
   if(is.null(newdata)) {
     fxn_call <- "simulate(model);"
   } else {
-    resp_var <- all.vars(x$formula)[1]
+    resp_var <- all.vars(object$formula)[1]
     # simulate in Julia requires a column corresponding to the response variable
     # initialized to a numeric value
     newdata[resp_var] <- 0
@@ -88,5 +91,5 @@ simulate.jglmm <- function(x, newdata = NULL, nsim = 1) {
     julia_eval(fxn_call)
   })
   sims |> as_tibble(.name_repair = "minimal") |>
-    setNames(glue("sim_{1:nsim}"))
+    set_names(glue("sim_{1:nsim}"))
 }

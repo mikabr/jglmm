@@ -4,12 +4,17 @@
 \alias{predict.jglmm}
 \title{Predictions from a model}
 \usage{
-\method{predict}{jglmm}(x, newdata = NULL, allow.new.levels = FALSE, type = "link")
+\method{predict}{jglmm}(object, newdata = NULL, type = "link", allow.new.levels = FALSE, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm`.}
 
 \item{newdata}{(optional) A dataframe of new data.}
+
+\item{type}{(optional) A character string - either \code{"link"} (default),
+where predictions are returned on the scale of the linear predictors, or
+\code{"response"}, where predictions are returned on the scale of the
+response variable.}
 
 \item{allow.new.levels}{(optional) A logical indicating whether new random
 effects levels in \code{newdata} are allowed. If \code{FALSE} (default),
@@ -17,10 +22,7 @@ such new values in \code{newdata} will trigger an error; if \code{TRUE},
 then the prediction will use population-level values for data with
 previously unobserved values.}
 
-\item{type}{(optional) A character string - either \code{"link"} (default),
-where predictions are returned on the scale of the linear predictors, or
-\code{"response"}, where predictions are returned on the scale of the
-response variable.}
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric vector of predicted values

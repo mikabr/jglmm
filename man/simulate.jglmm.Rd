@@ -4,15 +4,19 @@
 \alias{simulate.jglmm}
 \title{Simulate responses from a model}
 \usage{
-\method{simulate}{jglmm}(x, newdata = NULL, nsim = 1)
+\method{simulate}{jglmm}(object, nsim = 1, seed = NULL, newdata = NULL, ...)
 }
 \arguments{
-\item{x}{An object of class `jglmm`, as returned by `jglmm`.}
-
-\item{newdata}{(optional) A dataframe of new data.}
+\item{object}{An object of class `jglmm`, as returned by `jglmm`.}
 
 \item{nsim}{(optional) A positive integer indicating the number of responses
 to simulate}
+
+\item{seed}{Not currently used (see `simulate` generic).}
+
+\item{newdata}{(optional) A dataframe of new data.}
+
+\item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
 A numeric vector of simulated values
@@ -29,6 +33,6 @@ gm1 <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
 simulate(gm1)
 simulate(gm1, nsim = 5)
 newdata <- with(cbpp, expand.grid(period=unique(period), herd=unique(herd)))
-simulate(gm1, newdata)
+simulate(gm1, newdata = newdata)
 }
 }
