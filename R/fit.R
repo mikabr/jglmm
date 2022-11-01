@@ -91,6 +91,8 @@ jglmm <- function(formula, data, family = "normal", link = NULL, weights = NULL,
   # set up and fit model
   model <- julia_eval(glue("fit({model_fun}, {paste(model_args, collapse = ', ')})"))
 
+  # class(model) <- "jglmm"
+  # return(model)
   results <- list(formula = formula, data = data, model = model)
   class(results) <- "jglmm"
   return(results)

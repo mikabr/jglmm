@@ -3,6 +3,24 @@ coef_trans <- function(coef_names) {
   coef_names |> str_replace_all(": ", "=")
 }
 
+#' @rdname jglmm
+#' @include fit.R
+#' @param x An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
+#' @export
+print.jglmm <- function(x, ...) {
+  print(x$model)
+}
+
+#' @rdname jglmm
+#' @include fit.R
+#' @param object An object of class `jglmm`, as returned by `jglmm()`.
+#' @param ... Optional additional arguments, currently none are used.
+#' @export
+summary.jglmm <- function(object, ...) {
+  print(object$model)
+}
+
 #' Extract fixed-effects estimates
 #'
 #' Extract the fixed-effects estimates from a `jglmm` object.
@@ -106,8 +124,8 @@ sigma.jglmm <- function(object, ...) {
 #' }
 ranef.jglmm <- function(object, ...) {
   julia_assign("model", object$model)
-  ranef_terms <- julia_eval("keys(model_ranef)")
   model_ranef <- julia_eval("model_ranef = map(DataFrame, raneftables(model));")
+  ranef_terms <- julia_eval("keys(model_ranef)")
   cond_var <- julia_eval("condVar(model)")
   map(1:length(model_ranef), \(i) {
     df <- as_tibble(model_ranef[[i]]) |> rename_with(coef_trans)

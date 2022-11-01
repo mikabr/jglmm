@@ -2,7 +2,7 @@
 #'
 #' These methods tidy the coefficients and fitted values from `jglmm` objects.
 #'
-#' @importFrom generics augment tidy
+#' @importFrom generics glance tidy augment
 #' @param x An object of class `jglmm`, as returned by `jglmm()`.
 #' @param ... Optional additional arguments, currently none are used.
 #'
@@ -16,8 +16,23 @@
 #'             weights = cbpp$size)
 #' tidy(gm)
 #' augment(gm)
+#' glance(gm)
 #' }
 NULL
+
+#' @rdname jglmm_tidiers
+#'
+#' @return `glance` returns a data frame with one row and the columns:
+#'
+#' @export
+glance.jglmm <- function(x, ...) {
+  tibble(nobs = nobs(x),
+         sigma = sigma(x),
+         logLik = logLik(x),
+         AIC = extractAIC(x)[2],
+         BIC = extractAIC(x, k = log(nobs(x)))[2],
+         deviance = deviance(x))
+}
 
 #' @rdname jglmm_tidiers
 #'
@@ -49,27 +64,30 @@ tidy.jglmm <- function(x, ...) {
     mutate(effect = "fixed", group = NA, term = coef_trans(.data$term),
            param = "beta", .before = everything())
 
+  # package check requires code to not contain unicode characters
+  s <- "\u03c3"
+  p <- "\u03c1"
+
   # get variance/covariance estimates
   # extracted code from VarCorr to get individual values
   julia_command("vc = VarCorr(model);")
-  julia_command("σρ = vc.σρ;") # sd and corr for terms within groups
+  julia_command(glue("sp = vc.{s}{p};")) # sd and corr for terms within groups
 
-  # groups <- julia_eval("nmvec = string.([keys(σρ)...]);") # names of groups
-  groups <- julia_eval("string.([keys(σρ)...]);") # names of groups
+  groups <- julia_eval("string.([keys(sp)...]);") # names of groups
 
   # need to iterate over groups because they can have different sets of terms
   group_df <- map_df(1:length(groups), \(i) {
     group <- groups[i]
-    julia_command(glue("σi = σρ[{i}].σ;")) # sds for this group
-    terms <- julia_eval("string.(foldl(vcat, [keys(σi)...]))") |> str_replace(": ", "=")
-    sd_terms <- julia_eval("collect(values(σi))") # sd for each term
+    julia_command(glue("si = sp[{i}].{s};")) # sds for this group
+    terms <- julia_eval("string.(foldl(vcat, [keys(si)...]))") |> str_replace(": ", "=")
+    sd_terms <- julia_eval("collect(values(si))") # sd for each term
     sd_df <- tibble(group = group, param = "sd", term = terms, estimate = sd_terms)
 
-    corrs <- julia_eval(glue("ρi = σρ[{i}].ρ;")) # corrs for this group
+    corrs <- julia_eval(glue("pi = sp[{i}].{p};")) # corrs for this group
     if (length(corrs) == 0) {
       corr_df <- tibble()
     } else {
-      corrs <- julia_eval(glue("ρi = collect(values.(ρi));")) # corrs for this group
+      corrs <- julia_eval(glue("pi = collect(values.(pi));")) # corrs for this group
       n_terms <- length(terms)
 
       # figure out how to map corrs to terms by putting them in upper triangle
@@ -87,8 +105,12 @@ tidy.jglmm <- function(x, ...) {
   })
 
   sd_resid <- julia_eval("vcs = vc.s;") # sd for residuals
-  resid_df <- tibble(group = "Residual", param = "sd", term = "Observation",
-                     estimate = sd_resid)
+  if (!is.null(sd_resid)) {
+    resid_df <- tibble(group = "Residual", param = "sd", term = "Observation",
+                       estimate = sd_resid)
+  } else {
+    resid_df <- tibble()
+  }
 
   ran_pars <- bind_rows(group_df, resid_df) |>
     mutate(effect = "ran_pars", .before = everything())

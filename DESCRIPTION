@@ -35,3 +35,11 @@ SystemRequirements:
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+Collate: 
+    'data.R'
+    'fit.R'
+    'extract.R'
+    'fit_stats.R'
+    'jglmm-package.R'
+    'predict.R'
+    'tidyers.R'

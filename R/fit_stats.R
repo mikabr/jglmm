@@ -98,3 +98,25 @@ deviance.jglmm <- function(object, ...) {
   # in different values. To be investigated in the future.
   julia_eval("deviance(model);")
 }
+
+opt_info <- function(object) {
+  julia_assign("model", object$model)
+  julia_command("os = model.optsum;")
+  list(initial = julia_eval("os.initial"),
+       finitial = julia_eval("os.finitial"),
+       optimizer = julia_eval("os.optimizer"),
+       lowerbd = julia_eval("os.lowerbd"),
+       ftol_rel = julia_eval("os.ftol_rel"),
+       ftol_abs = julia_eval("os.ftol_abs"),
+       xtol_rel = julia_eval("os.xtol_rel"),
+       xtol_abs = julia_eval("os.xtol_abs"),
+       initial_step = julia_eval("os.initial_step"),
+       maxfeval = julia_eval("os.maxfeval"),
+       maxtime = julia_eval("os.maxtime"),
+       feval = julia_eval("os.feval"),
+       final = julia_eval("os.final"),
+       fmin = julia_eval("os.fmin"),
+       returnvalue = julia_eval("os.returnvalue"))
+  # julia_command("numfields = fieldcount(typeof(os));")
+  # julia_command("ostup = ntuple(i -> getfield(os, i), numfields);")
+}

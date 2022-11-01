@@ -2,10 +2,13 @@
 % Please edit documentation in R/tidyers.R
 \name{jglmm_tidiers}
 \alias{jglmm_tidiers}
+\alias{glance.jglmm}
 \alias{tidy.jglmm}
 \alias{augment.jglmm}
 \title{Tidying methods for jglmm models}
 \usage{
+\method{glance}{jglmm}(x, ...)
+
 \method{tidy}{jglmm}(x, ...)
 
 \method{augment}{jglmm}(x, ...)
@@ -16,6 +19,8 @@
 \item{...}{Optional additional arguments, currently none are used.}
 }
 \value{
+`glance` returns a data frame with one row and the columns:
+
 `tidy` returns a data frame with one row for each estimated effect.
 It contains the columns:
   \item{effect}{\code{"fixed"} for fixed effects, \code{"ran_pars"} for random effect parameters}
@@ -43,5 +48,6 @@ gm <- jglmm(prop ~ period + (1 | herd), data = cbpp, family = "binomial",
             weights = cbpp$size)
 tidy(gm)
 augment(gm)
+glance(gm)
 }
 }
