@@ -2,6 +2,8 @@
 
 R package for interfacing with Julia's MixedModels library to fit generalized linear mixed-effects models.
 
+[Here are some slides](http://rpubs.com/mikabr/jglmm-qsu) from a seminar on how to use jglmm.
+
 ## Setup
 
 Install the package with:
