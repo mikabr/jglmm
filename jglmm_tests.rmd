@@ -12,6 +12,8 @@ library(jglmm)
 library(lme4)
 library(tidyverse)
 library(glue)
+library(JuliaCall)
+library(here)
 
 options(JULIA_HOME = "/Applications/Julia-1.8.app/Contents/Resources/julia/bin/") 
 jglmm_setup()
@@ -27,7 +29,6 @@ usethis::use_data_raw(name = "julia_datasets")
 ```
 
 
-
 # Feasibility check 
 
 
@@ -40,6 +41,50 @@ usethis::use_data_raw(name = "julia_datasets")
 ```{r}
 cbpp_m <- jglmm::jglmm(incid/hsz ~ 1 + period + (1|herd),data = jglmm::cbpp)
 ```
+
+
+```{r}
+save_jglmm <- function(file_path, jglmm_fit){
+  julia_library("JLD2")
+  julia_library("FileIO")
+  julia_command(glue("file = File(format\"JLD2\", \"{file_path}\")"))
+  julia_assign("m", jglmm_fit$model)
+  julia_command("save(file, \"m\", m)")
+  
+}
+
+read_jglmm <- function(file_path){
+  julia_library("JLD2")
+  julia_library("FileIO")
+  julia_command(glue("saved_jglmm = load(\"{file_path}\")"))
+  julia_eval("saved_jglmm[\"m\"]")
+}
+
+
+
+#save_jglmm(here("test_save_function.jld2"), cbpp_m)
+
+read_jglmm(here("test_save_function.jld2"))
+```
+
+
+
+
+```{r}
+julia_command("file = File(format\"JLD2\", \"save_m1.jld2\")")
+julia_command("m1 = fit(MixedModel, @formula(yield ~ 1 + (1|batch)), MixedModels.dataset(:dyestuff))")
+
+julia_assign("m1", cbpp_m$model)
+julia_command("save(file, \"m1\", m1)")
+
+
+julia_command("saved_m1 = load(file)")
+a <- julia_eval("saved_m1[\"m1\"]")
+a
+```
+
+
+
 
 
 ```
